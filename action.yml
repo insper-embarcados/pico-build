@@ -36,4 +36,4 @@ runs:
     - name: Build
       shell: bash
       working-directory: build
-      run: cmake --build . --parallel 4 --target {{inputs.name}}
+      run: cmake --build . --parallel 4 --target "${{ inputs.name }}" 
