@@ -1,7 +1,5 @@
 name: 'Build rp2040 project'
-desciption: 'Build rp2040 cmake project with SDK'
 author: 'rafaelcorsi'
-
 
 inputs:
   name:
@@ -11,19 +9,31 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Checkout code
-      uses: rafaelcorsi/action-pico-build@latest
+    - name: Set up the toolchain
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential
+
+    - name: checkout code
+      uses: actions/checkout@v3
+
+    - name: Checkout pico-sdk
+      uses: actions/checkout@v3
+      with:
+          repository: raspberrypi/pico-sdk
+          path: pico-sdk
 
     - name: Create Build Environment
       shell: bash
-      run: cmake -E make_directory build
+      run:  cmake -E make_directory build
 
     - name: Configure CMake
       shell: bash
       working-directory: build
-      run: PICO_SDK_PATH=/pico/pico-sdk cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE  -DPICO_TOOL=off ..
+      run: PICO_SDK_PATH=../pico-sdk cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DPICO_TOOL=off
 
     - name: Build
       shell: bash
       working-directory: build
-      run: cmake --build . --parallel $(nproc) --target ${name}
+      run: cmake --build . --parallel 4 --target ${name}
