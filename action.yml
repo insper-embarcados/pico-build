@@ -2,37 +2,17 @@ name: 'Build rp2040 project'
 desciption: 'Build rp2040 cmake project with SDK'
 author: 'rafaelcorsi'
 
+
+inputs:
+  name:
+    description: 'Folder name'
+    required: true
+
 runs:
   using: "composite"
   steps:
     - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Cache pico-sdk
-      uses: actions/cache@v3
-      with:
-        path: pico-sdk
-        key: ${{ runner.os }}-pico-sdk
-        restore-keys: |
-          ${{ runner.os }}-pico-sdk
-
-    - name: Checkout pico-sdk (if not cached)
-      if: steps.cache-pico-sdk.outputs.cache-hit != 'true'
-      uses: actions/checkout@v3
-      with:
-          repository: raspberrypi/pico-sdk
-          path: pico-sdk
-
-    - name: Checkout pico-sdk submodules
-      if: steps.cache-pico-sdk.outputs.cache-hit != 'true'
-      shell: bash
-      working-directory: pico-sdk
-      run: git submodule update --init
-
-    - name: Install dependencies
-      shell: bash
-      run: |
-        sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential
+      uses: rafaelcorsi/action-pico-build@latest
 
     - name: Create Build Environment
       shell: bash
@@ -41,9 +21,9 @@ runs:
     - name: Configure CMake
       shell: bash
       working-directory: build
-      run: PICO_SDK_PATH=../pico-sdk cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      run: PICO_SDK_PATH=/pico/pico-sdk cmake .. -DCMAKE_BUILD_TYPE=$BUILD_TYPE  -DPICO_TOOL=off ..
 
     - name: Build
       shell: bash
       working-directory: build
-      run: cmake --build . --parallel $(nproc)
+      run: cmake --build . --parallel $(nproc) --target ${name}
